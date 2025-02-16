@@ -19,7 +19,7 @@
       margin-bottom: 20px; 
       font-family: 'Brush Script MT', cursive;
     }
-    /* Bottoni dei colori: bianchi con bordo nero, senza scritta, con background impostato inline */
+    /* Bottoni dei colori: bianchi con bordo nero, senza scritta, background impostato inline */
     .color-btn { 
       width: 100px; 
       height: 100px; 
@@ -73,7 +73,7 @@
       font-weight: bold; 
       color: purple;
     }
-    /* Story line per i tentativi */
+    /* Storyline per i tentativi */
     #storyline {
       margin-top: 20px;
       font-size: 16px;
@@ -83,8 +83,14 @@
       margin-left: auto;
       margin-right: auto;
     }
-    #storyline div {
-      margin-bottom: 10px;
+    #storyline div { margin-bottom: 10px; }
+    
+    /* Responsive per smartphone */
+    @media (max-width: 600px) {
+      .color-btn { width: 60px; height: 60px; margin: 3px; }
+      .color-circle { width: 20px; height: 20px; border-width: 2px; }
+      .action-btn { font-size: 14px; padding: 8px 15px; }
+      #logo { font-size: 30px; }
     }
   </style>
 </head>
@@ -100,15 +106,14 @@
   </div>
   <p id="instructions">Seleziona 4 colori e prova a indovinare la sequenza segreta!</p>
   
-  <!-- Bottoni dei colori -->
+  <!-- Bottoni dei colori: viene usato sia onclick che ontouchstart -->
   <div>
-    <!-- I bottoni hanno il background impostato inline; gli onclick verranno aggiornati in updateLanguage() -->
-    <button class="color-btn" onclick="selectColor('Rosso')" style="background-color: red;"></button>
-    <button class="color-btn" onclick="selectColor('Giallo')" style="background-color: yellow;"></button>
-    <button class="color-btn" onclick="selectColor('Verde')" style="background-color: green;"></button>
-    <button class="color-btn" onclick="selectColor('Marrone Chiaro')" style="background-color: burlywood;"></button>
-    <button class="color-btn" onclick="selectColor('Nero')" style="background-color: black;"></button>
-    <button class="color-btn" onclick="selectColor('Bianco')" style="background-color: white;"></button>
+    <button class="color-btn rosso" onclick="selectColor('Rosso')" ontouchstart="selectColor('Rosso')" style="background-color: red;"></button>
+    <button class="color-btn giallo" onclick="selectColor('Giallo')" ontouchstart="selectColor('Giallo')" style="background-color: yellow;"></button>
+    <button class="color-btn verde" onclick="selectColor('Verde')" ontouchstart="selectColor('Verde')" style="background-color: green;"></button>
+    <button class="color-btn marrone" onclick="selectColor('Marrone Chiaro')" ontouchstart="selectColor('Marrone Chiaro')" style="background-color: burlywood;"></button>
+    <button class="color-btn nero" onclick="selectColor('Nero')" ontouchstart="selectColor('Nero')" style="background-color: black;"></button>
+    <button class="color-btn bianco" onclick="selectColor('Bianco')" ontouchstart="selectColor('Bianco')" style="background-color: white;"></button>
   </div>
   
   <div id="selected-sequence-label">Sequenza scelta:</div>
@@ -148,7 +153,6 @@
     let attempts = 0;
     let clearAttempts = 0;
     
-    // Aggiorna la lingua e i testi della pagina in base alla selezione
     function updateLanguage() {
       const lang = document.getElementById("language").value;
       const languageLabel = document.getElementById("language-label");
@@ -182,22 +186,20 @@
       const langColors = colors[lang];
       for (let i = 0; i < colorButtons.length; i++) {
         colorButtons[i].setAttribute("onclick", `selectColor('${langColors[i]}')`);
+        colorButtons[i].setAttribute("ontouchstart", `selectColor('${langColors[i]}')`);
       }
       
       generateSecretSequence();
-      document.getElementById("storyline").innerHTML = ""; // reset della story line
+      document.getElementById("storyline").innerHTML = "";
       attempts = 0;
     }
     
-    // Genera la sequenza segreta di 4 colori diversi (nessun duplicato)
     function generateSecretSequence() {
       const lang = document.getElementById("language").value;
-      // Shuffle l'array e prendi i primi 4 colori
       secretSequence = [...colors[lang]].sort(() => 0.5 - Math.random()).slice(0, 4);
       console.log("Secret sequence:", secretSequence);
     }
     
-    // Aggiunge un colore alla selezione dell'utente (i colori saranno in base alla lingua impostata)
     function selectColor(color) {
       if (userSequence.length < 4) {
         userSequence.push(color);
@@ -205,7 +207,6 @@
       }
     }
     
-    // Aggiorna la visualizzazione della sequenza scelta (cerchi colorati)
     function updateSelectedDisplay() {
       const container = document.getElementById("selected-sequence");
       container.innerHTML = "";
@@ -217,14 +218,13 @@
       });
     }
     
-    // Logga il tentativo nella "storyline" usando gli stessi cerchi e il messaggio dei colori corretti
     function logAttempt(guess, correctPositions) {
       const lang = document.getElementById("language").value;
       const storylineContainer = document.getElementById("storyline");
       const attemptDiv = document.createElement("div");
       attemptDiv.style.marginBottom = "10px";
       
-      // Container per i cerchi (copia della selezione)
+      // Crea un container per i cerchi (copiando la visualizzazione della selezione)
       const circlesContainer = document.createElement("div");
       circlesContainer.style.display = "flex";
       circlesContainer.style.justifyContent = "center";
@@ -237,20 +237,15 @@
       });
       attemptDiv.appendChild(circlesContainer);
       
-      // Messaggio con il numero di colori corretti, sotto i cerchi
+      // Messaggio con il numero di colori corretti
       const correctMsg = document.createElement("div");
       correctMsg.style.marginTop = "5px";
-      if (lang === "1") {
-        correctMsg.innerText = `${correctPositions} colore/i corretti`;
-      } else {
-        correctMsg.innerText = `${correctPositions} color(s) correct`;
-      }
+      correctMsg.innerText = lang === "1" ? `${correctPositions} colore/i corretti` : `${correctPositions} color(s) correct`;
       attemptDiv.appendChild(correctMsg);
       
       storylineContainer.appendChild(attemptDiv);
     }
     
-    // Controlla se l'utente ha indovinato la sequenza e logga il tentativo
     function submitGuess() {
       if (userSequence.length !== 4) {
         alert(document.getElementById("language").value === "1" ? "Seleziona 4 colori prima di inviare!" : "Select 4 colors before submitting!");
@@ -277,7 +272,6 @@
       updateSelectedDisplay();
     }
     
-    // Permette di cancellare la selezione corrente (massimo 2 volte)
     function clearSelection() {
       if (clearAttempts < 2) {
         userSequence = [];
@@ -288,7 +282,6 @@
       }
     }
     
-    // Resetta il gioco (incluse la story line e la sequenza segreta)
     function resetGame() {
       attempts = 0;
       clearAttempts = 0;
@@ -299,7 +292,6 @@
       document.getElementById("storyline").innerHTML = "";
     }
     
-    // Inizializza la sequenza segreta all'avvio
     generateSecretSequence();
   </script>
 </body>
