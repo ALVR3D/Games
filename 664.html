@@ -28,7 +28,9 @@
       cursor: pointer; 
       border-radius: 12px; 
       transition: transform 0.2s; 
-      background-color: white; 
+      background-color: white;
+      /* Prevent default touch actions (helps with ghost clicks) */
+      touch-action: manipulation;
     }
     .color-btn:hover { 
       transform: scale(1.1); 
@@ -99,40 +101,40 @@
   <h1 id="title">Indovina la Sequenza</h1>
   <div id="language-container">
     <label id="language-label" for="language">Scegli la lingua:</label>
-    <select id="language" onchange="updateLanguage()">
+    <select id="language">
       <option value="1">Italiano</option>
       <option value="2">English</option>
     </select>
   </div>
   <p id="instructions">Seleziona 4 colori e prova a indovinare la sequenza segreta!</p>
   
-  <!-- Bottoni dei colori: usa sia onclick che ontouchstart -->
+  <!-- Color buttons – note the data-index attribute. Their background-color stays the same. -->
   <div>
-    <button class="color-btn rosso" onclick="selectColor('Rosso', event)" ontouchstart="selectColor('Rosso', event)" style="background-color: red;"></button>
-    <button class="color-btn giallo" onclick="selectColor('Giallo', event)" ontouchstart="selectColor('Giallo', event)" style="background-color: yellow;"></button>
-    <button class="color-btn verde" onclick="selectColor('Verde', event)" ontouchstart="selectColor('Verde', event)" style="background-color: green;"></button>
-    <button class="color-btn marrone" onclick="selectColor('Marrone Chiaro', event)" ontouchstart="selectColor('Marrone Chiaro', event)" style="background-color: burlywood;"></button>
-    <button class="color-btn nero" onclick="selectColor('Nero', event)" ontouchstart="selectColor('Nero', event)" style="background-color: black;"></button>
-    <button class="color-btn bianco" onclick="selectColor('Bianco', event)" ontouchstart="selectColor('Bianco', event)" style="background-color: white;"></button>
+    <button class="color-btn" data-index="0" style="background-color: red;"></button>
+    <button class="color-btn" data-index="1" style="background-color: yellow;"></button>
+    <button class="color-btn" data-index="2" style="background-color: green;"></button>
+    <button class="color-btn" data-index="3" style="background-color: burlywood;"></button>
+    <button class="color-btn" data-index="4" style="background-color: black;"></button>
+    <button class="color-btn" data-index="5" style="background-color: white;"></button>
   </div>
   
   <div id="selected-sequence-label">Sequenza scelta:</div>
   <div id="selected-sequence"></div>
   
-  <button class="action-btn" onclick="submitGuess()" id="submit-btn">Tenta</button>
-  <button class="action-btn" onclick="resetGame()" id="generate-btn">Genera Sequenza</button>
-  <button class="action-btn" onclick="clearSelection()" id="clear-btn">Cancella</button>
+  <button class="action-btn" id="submit-btn">Tenta</button>
+  <button class="action-btn" id="generate-btn">Genera Sequenza</button>
+  <button class="action-btn" id="clear-btn">Cancella</button>
   
   <p id="feedback"></p>
   <div id="storyline"></div>
   
   <script>
-    // Array dei colori per lingua: '1' = Italiano, '2' = English
+    // Color arrays for Italian (1) and English (2)
     const colors = {
       '1': ['Rosso', 'Giallo', 'Verde', 'Marrone Chiaro', 'Nero', 'Bianco'],
       '2': ['Red', 'Yellow', 'Green', 'Light Brown', 'Black', 'White']
     };
-    // Mappatura dei nomi dei colori ai codici CSS
+    // Map of color names to CSS color codes
     const colorCodes = {
       'Rosso': 'red',
       'Giallo': 'yellow',
@@ -152,60 +154,45 @@
     let userSequence = [];
     let attempts = 0;
     let clearAttempts = 0;
-    let lastColorSelectTime = 0; // Prevent duplicate selections
+    let lastColorSelectTime = 0; // To prevent duplicate selections
     
-    function updateLanguage() {
-      const lang = document.getElementById("language").value;
-      const languageLabel = document.getElementById("language-label");
-      const title = document.getElementById("title");
-      const instructions = document.getElementById("instructions");
-      const submitBtn = document.getElementById("submit-btn");
-      const generateBtn = document.getElementById("generate-btn");
-      const clearBtn = document.getElementById("clear-btn");
-      const selectedSeqLabel = document.getElementById("selected-sequence-label");
-      
-      if (lang === "1") {
-        languageLabel.innerText = "Scegli la lingua:";
-        title.innerText = "Indovina la Sequenza";
-        instructions.innerText = "Seleziona 4 colori e prova a indovinare la sequenza segreta!";
-        submitBtn.innerText = "Tenta";
-        generateBtn.innerText = "Genera Sequenza";
-        clearBtn.innerText = "Cancella";
-        selectedSeqLabel.innerText = "Sequenza scelta:";
-      } else {
-        languageLabel.innerText = "Choose language:";
-        title.innerText = "Guess the Sequence";
-        instructions.innerText = "Select 4 colors and try to guess the secret sequence!";
-        submitBtn.innerText = "Try";
-        generateBtn.innerText = "Generate Sequence";
-        clearBtn.innerText = "Delete";
-        selectedSeqLabel.innerText = "Selected sequence:";
-      }
-      
-      // Aggiorna gli onclick dei bottoni dei colori in base alla lingua
-      const colorButtons = document.querySelectorAll(".color-btn");
-      const langColors = colors[lang];
-      for (let i = 0; i < colorButtons.length; i++) {
-        // Include the event object in the inline attribute call
-        colorButtons[i].setAttribute("onclick", `selectColor('${langColors[i]}', event)`);
-        colorButtons[i].setAttribute("ontouchstart", `selectColor('${langColors[i]}', event)`);
-      }
-      
-      generateSecretSequence();
-      document.getElementById("storyline").innerHTML = "";
-      attempts = 0;
+    // Attach event listeners to the color buttons.
+    function attachColorButtonListeners() {
+      const buttons = document.querySelectorAll('.color-btn');
+      buttons.forEach(button => {
+        // Use pointer events if available; otherwise, use touchend and click.
+        if (window.PointerEvent) {
+          button.addEventListener('pointerdown', colorButtonHandler);
+        } else {
+          let touchHandled = false;
+          button.addEventListener('touchend', function(e) {
+            e.preventDefault(); // Prevent emulated mouse events.
+            touchHandled = true;
+            colorButtonHandler.call(button, e);
+          });
+          button.addEventListener('click', function(e) {
+            if (touchHandled) {
+              touchHandled = false;
+              return;
+            }
+            colorButtonHandler.call(button, e);
+          });
+        }
+      });
     }
     
-    function generateSecretSequence() {
-      const lang = document.getElementById("language").value;
-      secretSequence = [...colors[lang]].sort(() => 0.5 - Math.random()).slice(0, 4);
-      console.log("Secret sequence:", secretSequence);
+    // Common handler for color button events.
+    function colorButtonHandler(e) {
+      e.preventDefault();
+      // Get the button's index and current language.
+      const index = this.getAttribute('data-index');
+      const lang = document.getElementById('language').value;
+      const color = colors[lang][index];
+      selectColor(color, e);
     }
     
     function selectColor(color, e) {
-      if (e) e.preventDefault(); // Prevent default touch behavior
       const now = Date.now();
-      // Ignore duplicate events occurring within 300ms
       if (now - lastColorSelectTime < 300) return;
       lastColorSelectTime = now;
       
@@ -216,7 +203,7 @@
     }
     
     function updateSelectedDisplay() {
-      const container = document.getElementById("selected-sequence");
+      const container = document.getElementById('selected-sequence');
       container.innerHTML = "";
       userSequence.forEach(color => {
         const circle = document.createElement("div");
@@ -232,7 +219,7 @@
       const attemptDiv = document.createElement("div");
       attemptDiv.style.marginBottom = "10px";
       
-      // Crea un container per i cerchi (copiando la visualizzazione della selezione)
+      // Create a container for the circles (mirroring the selection)
       const circlesContainer = document.createElement("div");
       circlesContainer.style.display = "flex";
       circlesContainer.style.justifyContent = "center";
@@ -245,7 +232,7 @@
       });
       attemptDiv.appendChild(circlesContainer);
       
-      // Messaggio con il numero di colori corretti
+      // Message showing number of correct colors in the correct positions
       const correctMsg = document.createElement("div");
       correctMsg.style.marginTop = "5px";
       correctMsg.innerText = lang === "1" ? `${correctPositions} colore/i corretti` : `${correctPositions} color(s) correct`;
@@ -290,6 +277,12 @@
       }
     }
     
+    function generateSecretSequence() {
+      const lang = document.getElementById("language").value;
+      secretSequence = [...colors[lang]].sort(() => 0.5 - Math.random()).slice(0, 4);
+      console.log("Secret sequence:", secretSequence);
+    }
+    
     function resetGame() {
       attempts = 0;
       clearAttempts = 0;
@@ -300,7 +293,57 @@
       document.getElementById("storyline").innerHTML = "";
     }
     
-    generateSecretSequence();
+    function updateLanguage() {
+      const lang = document.getElementById("language").value;
+      const languageLabel = document.getElementById("language-label");
+      const title = document.getElementById("title");
+      const instructions = document.getElementById("instructions");
+      const submitBtn = document.getElementById("submit-btn");
+      const generateBtn = document.getElementById("generate-btn");
+      const clearBtn = document.getElementById("clear-btn");
+      const selectedSeqLabel = document.getElementById("selected-sequence-label");
+      
+      if (lang === "1") {
+        languageLabel.innerText = "Scegli la lingua:";
+        title.innerText = "Indovina la Sequenza";
+        instructions.innerText = "Seleziona 4 colori e prova a indovinare la sequenza segreta!";
+        submitBtn.innerText = "Tenta";
+        generateBtn.innerText = "Genera Sequenza";
+        clearBtn.innerText = "Cancella";
+        selectedSeqLabel.innerText = "Sequenza scelta:";
+      } else {
+        languageLabel.innerText = "Choose language:";
+        title.innerText = "Guess the Sequence";
+        instructions.innerText = "Select 4 colors and try to guess the secret sequence!";
+        submitBtn.innerText = "Try";
+        generateBtn.innerText = "Generate Sequence";
+        clearBtn.innerText = "Delete";
+        selectedSeqLabel.innerText = "Selected sequence:";
+      }
+      
+      generateSecretSequence();
+      document.getElementById("storyline").innerHTML = "";
+      attempts = 0;
+    }
+    
+    // Attach listeners to language and action buttons.
+    document.getElementById("language").addEventListener("change", updateLanguage);
+    document.getElementById("submit-btn").addEventListener("click", submitGuess);
+    document.getElementById("generate-btn").addEventListener("click", resetGame);
+    document.getElementById("clear-btn").addEventListener("click", clearSelection);
+    
+    // When the DOM is ready, attach color button listeners and initialize the game.
+    document.addEventListener("DOMContentLoaded", function() {
+      attachColorButtonListeners();
+      updateLanguage();
+    });
+    // If DOM is already ready:
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+      setTimeout(function() {
+        attachColorButtonListeners();
+        updateLanguage();
+      }, 0);
+    }
   </script>
 </body>
 </html>
