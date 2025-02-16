@@ -73,6 +73,19 @@
       font-weight: bold; 
       color: purple;
     }
+    /* Story line per i tentativi */
+    #storyline {
+      margin-top: 20px;
+      font-size: 16px;
+      color: purple;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #storyline div {
+      margin-bottom: 5px;
+    }
   </style>
 </head>
 <body>
@@ -87,7 +100,7 @@
   </div>
   <p id="instructions">Seleziona 4 colori e prova a indovinare la sequenza segreta!</p>
   
-  <!-- Bottoni dei colori con background inline -->
+  <!-- Bottoni dei colori -->
   <div>
     <button class="color-btn" onclick="selectColor('Rosso')" style="background-color: red;"></button>
     <button class="color-btn" onclick="selectColor('Giallo')" style="background-color: yellow;"></button>
@@ -105,6 +118,7 @@
   <button class="action-btn" onclick="clearSelection()" id="clear-btn">Cancella</button>
   
   <p id="feedback"></p>
+  <div id="storyline"></div>
   
   <script>
     // Array dei colori per lingua: '1' = Italiano, '2' = English
@@ -133,7 +147,7 @@
     let attempts = 0;
     let clearAttempts = 0;
     
-    // Aggiorna la lingua e i testi della pagina in base alla selezione
+    // Aggiorna il testo della pagina in base alla lingua selezionata
     function updateLanguage() {
       const lang = document.getElementById("language").value;
       const languageLabel = document.getElementById("language-label");
@@ -162,12 +176,14 @@
         selectedSeqLabel.innerText = "Selected sequence:";
       }
       generateSecretSequence();
+      document.getElementById("storyline").innerHTML = ""; // reset story line
+      attempts = 0;
     }
     
     // Genera la sequenza segreta di 4 colori diversi (nessun duplicato)
     function generateSecretSequence() {
       const lang = document.getElementById("language").value;
-      // Shuffle e prendi i primi 4 colori unici
+      // Shuffla l'array e prendi i primi 4 colori unici
       secretSequence = [...colors[lang]].sort(() => 0.5 - Math.random()).slice(0, 4);
       console.log("Secret sequence:", secretSequence);
     }
@@ -192,6 +208,19 @@
       });
     }
     
+    // Registra e mostra nella "storyline" i tentativi effettuati
+    function logAttempt(guess, correctPositions) {
+      const lang = document.getElementById("language").value;
+      const storylineContainer = document.getElementById("storyline");
+      const attemptDiv = document.createElement("div");
+      if (lang === "1") {
+        attemptDiv.innerText = `Tentativo ${attempts}: ${guess.join(', ')} => ${correctPositions} colore/i nella posizione corretta.`;
+      } else {
+        attemptDiv.innerText = `Attempt ${attempts}: ${guess.join(', ')} => ${correctPositions} color(s) in the correct position.`;
+      }
+      storylineContainer.appendChild(attemptDiv);
+    }
+    
     // Controlla se l'utente ha indovinato la sequenza
     function submitGuess() {
       if (userSequence.length !== 4) {
@@ -199,6 +228,8 @@
         return;
       }
       attempts++;
+      // Salva il tentativo corrente per il log
+      const guessAttempt = [...userSequence];
       let correctPositions = userSequence.filter((color, index) => color === secretSequence[index]).length;
       const feedback = document.getElementById("feedback");
       if (correctPositions === 4) {
@@ -213,6 +244,7 @@
             `Game Over! The sequence was: ${secretSequence.join(', ')}`);
         }
       }
+      logAttempt(guessAttempt, correctPositions);
       userSequence = [];
       updateSelectedDisplay();
     }
@@ -236,6 +268,7 @@
       userSequence = [];
       updateSelectedDisplay();
       document.getElementById("feedback").innerText = "";
+      document.getElementById("storyline").innerHTML = "";
     }
     
     // Inizializza la sequenza segreta all'avvio
