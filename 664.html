@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indovina la Sequenza</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .color-btn { width: 100px; height: 100px; margin: 5px; border: 3px solid #444; cursor: pointer; border-radius: 12px; transition: transform 0.2s; }
+        .color-btn:hover { transform: scale(1.1); }
+        .rosso { background-color: red; }
+        .giallo { background-color: yellow; }
+        .verde { background-color: green; }
+        .marrone { background-color: burlywood; }
+        .nero { background-color: black; color: white; }
+        .bianco { background-color: white; border: 3px solid black; }
+        #selected-sequence { margin-top: 10px; font-weight: bold; }
+        #feedback { margin-top: 15px; font-size: 18px; font-weight: bold; }
+        #logo { font-size: 30px; font-weight: bold; margin-bottom: 20px; letter-spacing: 2px; }
+        .action-btn { font-size: 18px; padding: 10px 20px; margin: 10px; border: 3px solid black; border-radius: 8px; cursor: pointer; transition: background 0.3s, transform 0.2s; color: purple; background-color: white; }
+        .action-btn:hover { transform: scale(1.1); background-color: lightgray; }
+    </style>
+</head>
+<body>
+    <div id="logo">ALVR</div>
+    <h1>Indovina la Sequenza</h1>
+    <p>Seleziona 4 colori e prova a indovinare la sequenza segreta!</p>
+    
+    <div>
+        <button class="color-btn rosso" onclick="selectColor('Rosso')"></button>
+        <button class="color-btn giallo" onclick="selectColor('Giallo')"></button>
+        <button class="color-btn verde" onclick="selectColor('Verde')"></button>
+        <button class="color-btn marrone" onclick="selectColor('Marrone Chiaro')"></button>
+        <button class="color-btn nero" onclick="selectColor('Nero')"></button>
+        <button class="color-btn bianco" onclick="selectColor('Bianco')"></button>
+    </div>
+    
+    <p id="selected-sequence">Sequenza scelta: </p>
+    <button class="action-btn" onclick="submitGuess()">Tenta</button>
+    <button class="action-btn" onclick="resetGame()">Genera Sequenza</button>
+    <p id="feedback"></p>
+    
+    <script>
+        const colors = ['Rosso', 'Giallo', 'Verde', 'Marrone Chiaro', 'Nero', 'Bianco'];
+        let secretSequence = [];
+        let userSequence = [];
+        let attempts = 0;
+        
+        function generateSecretSequence() {
+            secretSequence = [...colors].sort(() => 0.5 - Math.random()).slice(0, 4);
+            console.log("[DEBUG] Sequenza segreta generata:", secretSequence);
+        }
+        
+        function selectColor(color) {
+            if (userSequence.length < 4) {
+                userSequence.push(color);
+                document.getElementById("selected-sequence").innerText = "Sequenza scelta: " + userSequence.join(', ');
+                console.log("[DEBUG] Colore selezionato:", color);
+            } else {
+                console.log("[DEBUG] Impossibile selezionare più di 4 colori");
+            }
+        }
+        
+        function submitGuess() {
+            if (userSequence.length !== 4) {
+                alert("Seleziona 4 colori prima di inviare!");
+                console.log("[DEBUG] Tentativo non valido, selezione incompleta.");
+                return;
+            }
+            attempts++;
+            console.log("[DEBUG] Tentativo numero:", attempts, "Sequenza utente:", userSequence);
+            
+            let correctPositions = userSequence.filter((color, index) => color === secretSequence[index]).length;
+            console.log("[DEBUG] Corrette in posizione giusta:", correctPositions);
+            
+            if (correctPositions === 4) {
+                document.getElementById("feedback").innerText = "🎉 Complimenti! Hai indovinato la sequenza! 🎉";
+                console.log("[DEBUG] L'utente ha indovinato la sequenza!");
+            } else {
+                document.getElementById("feedback").innerText = `Tentativo ${attempts}: ${correctPositions} colore/i nella posizione corretta.`;
+                if (attempts >= 6) {
+                    document.getElementById("feedback").innerText += `\nGame Over! La sequenza era: ${secretSequence.join(', ')}`;
+                    console.log("[DEBUG] Game Over! Sequenza corretta:", secretSequence);
+                }
+            }
+            userSequence = [];
+            document.getElementById("selected-sequence").innerText = "Sequenza scelta: ";
+        }
+        
+        function resetGame() {
+            attempts = 0;
+            generateSecretSequence();
+            userSequence = [];
+            document.getElementById("selected-sequence").innerText = "Sequenza scelta: ";
+            document.getElementById("feedback").innerText = "";
+            console.log("[DEBUG] Gioco resettato.");
+        }
+        
+        generateSecretSequence();
+    </script>
+</body>
+</html>
