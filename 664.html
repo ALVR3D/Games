@@ -31,60 +31,44 @@
     <p id="instructions">Seleziona 4 colori e prova a indovinare la sequenza segreta!</p>
     
     <div>
-        <button class="color-btn rosso" onclick="selectColor('Rosso', 'Red')"></button>
-        <button class="color-btn giallo" onclick="selectColor('Giallo', 'Yellow')"></button>
-        <button class="color-btn verde" onclick="selectColor('Verde', 'Green')"></button>
-        <button class="color-btn marrone" onclick="selectColor('Marrone Chiaro', 'Light Brown')"></button>
-        <button class="color-btn nero" onclick="selectColor('Nero', 'Black')"></button>
-        <button class="color-btn bianco" onclick="selectColor('Bianco', 'White')"></button>
+        <button class="color-btn rosso" onclick="selectColor('Rosso')"></button>
+        <button class="color-btn giallo" onclick="selectColor('Giallo')"></button>
+        <button class="color-btn verde" onclick="selectColor('Verde')"></button>
+        <button class="color-btn marrone" onclick="selectColor('Marrone Chiaro')"></button>
+        <button class="color-btn nero" onclick="selectColor('Nero')"></button>
+        <button class="color-btn bianco" onclick="selectColor('Bianco')"></button>
     </div>
     
     <p id="selected-sequence">Sequenza scelta: </p>
-    <button class="action-btn" id="submit-btn" onclick="submitGuess()">Tenta</button>
-    <button class="action-btn" id="reset-btn" onclick="resetGame()">Genera Sequenza</button>
+    <button class="action-btn" id="try-btn" onclick="submitGuess()">Tenta</button>
+    <button class="action-btn" id="generate-btn" onclick="resetGame()">Genera Sequenza</button>
     <p id="feedback"></p>
     
     <script>
-        const translations = {
-            it: {
-                title: "Indovina la Sequenza",
-                instructions: "Seleziona 4 colori e prova a indovinare la sequenza segreta!",
-                submit: "Tenta",
-                reset: "Genera Sequenza",
-                chosenSequence: "Sequenza scelta: ",
-                colors: ['Rosso', 'Giallo', 'Verde', 'Marrone Chiaro', 'Nero', 'Bianco']
-            },
-            en: {
-                title: "Guess the Sequence",
-                instructions: "Select 4 colors and try to guess the secret sequence!",
-                submit: "Try",
-                reset: "Generate Sequence",
-                chosenSequence: "Chosen sequence: ",
-                colors: ['Red', 'Yellow', 'Green', 'Light Brown', 'Black', 'White']
-            }
+        const colors = {
+            'it': ['Rosso', 'Giallo', 'Verde', 'Marrone Chiaro', 'Nero', 'Bianco'],
+            'en': ['Red', 'Yellow', 'Green', 'Light Brown', 'Black', 'White']
         };
-        
         let secretSequence = [];
         let userSequence = [];
         let attempts = 0;
-        let language = "it";
-
+        let currentLanguage = 'it';
+        
         function generateSecretSequence() {
-            secretSequence = [...translations[language].colors].sort(() => 0.5 - Math.random()).slice(0, 4);
+            secretSequence = [...colors[currentLanguage]].sort(() => 0.5 - Math.random()).slice(0, 4);
             console.log("Sequenza segreta:", secretSequence); // Debug
         }
         
-        function selectColor(colorIt, colorEn) {
-            let color = (language === "it") ? colorIt : colorEn;
+        function selectColor(color) {
             if (userSequence.length < 4) {
                 userSequence.push(color);
-                document.getElementById("selected-sequence").innerText = translations[language].chosenSequence + userSequence.join(', ');
+                document.getElementById("selected-sequence").innerText = (currentLanguage === 'it' ? "Sequenza scelta: " : "Selected sequence: ") + userSequence.join(', ');
             }
         }
         
         function submitGuess() {
             if (userSequence.length !== 4) {
-                alert("Seleziona 4 colori prima di inviare!");
+                alert(currentLanguage === 'it' ? "Seleziona 4 colori prima di inviare!" : "Select 4 colors before submitting!");
                 return;
             }
             attempts++;
@@ -92,32 +76,31 @@
             let correctPositions = userSequence.filter((color, index) => color === secretSequence[index]).length;
             
             if (correctPositions === 4) {
-                document.getElementById("feedback").innerText = "🎉 " + translations[language].title + " 🎉";
+                document.getElementById("feedback").innerText = currentLanguage === 'it' ? "🎉 Complimenti! Hai indovinato la sequenza! 🎉" : "🎉 Congratulations! You guessed the sequence! 🎉";
             } else {
-                document.getElementById("feedback").innerText = `Tentativo ${attempts}: ${correctPositions} colore/i nella posizione corretta.`;
+                document.getElementById("feedback").innerText = (currentLanguage === 'it' ? `Tentativo ${attempts}: ${correctPositions} colore/i nella posizione corretta.` : `Attempt ${attempts}: ${correctPositions} color(s) in the correct position.`);
                 if (attempts >= 6) {
-                    document.getElementById("feedback").innerText += `\nGame Over! ${translations[language].title}: ${secretSequence.join(', ')}`;
+                    document.getElementById("feedback").innerText += (currentLanguage === 'it' ? `\nGame Over! La sequenza era: ` : `\nGame Over! The sequence was: `) + secretSequence.join(', ');
                 }
             }
             userSequence = [];
-            document.getElementById("selected-sequence").innerText = translations[language].chosenSequence;
+            document.getElementById("selected-sequence").innerText = currentLanguage === 'it' ? "Sequenza scelta: " : "Selected sequence: ";
         }
         
         function resetGame() {
             attempts = 0;
             generateSecretSequence();
             userSequence = [];
-            document.getElementById("selected-sequence").innerText = translations[language].chosenSequence;
+            document.getElementById("selected-sequence").innerText = currentLanguage === 'it' ? "Sequenza scelta: " : "Selected sequence: ";
             document.getElementById("feedback").innerText = "";
         }
         
         function changeLanguage() {
-            language = document.getElementById("language").value;
-            document.getElementById("title").innerText = translations[language].title;
-            document.getElementById("instructions").innerText = translations[language].instructions;
-            document.getElementById("submit-btn").innerText = translations[language].submit;
-            document.getElementById("reset-btn").innerText = translations[language].reset;
-            document.getElementById("selected-sequence").innerText = translations[language].chosenSequence;
+            currentLanguage = document.getElementById("language").value;
+            document.getElementById("title").innerText = currentLanguage === 'it' ? "Indovina la Sequenza" : "Guess the Sequence";
+            document.getElementById("instructions").innerText = currentLanguage === 'it' ? "Seleziona 4 colori e prova a indovinare la sequenza segreta!" : "Select 4 colors and try to guess the secret sequence!";
+            document.getElementById("try-btn").innerText = currentLanguage === 'it' ? "Tenta" : "Try";
+            document.getElementById("generate-btn").innerText = currentLanguage === 'it' ? "Genera Sequenza" : "Generate Sequence";
             generateSecretSequence();
         }
         
@@ -125,4 +108,5 @@
     </script>
 </body>
 </html>
+
 
