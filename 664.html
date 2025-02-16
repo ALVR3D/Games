@@ -1,70 +1,175 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Indovina la Sequenza</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f3e5f5; }
-        #logo { font-size: 30px; font-weight: bold; font-style: italic; color: purple; margin-bottom: 20px; font-family: 'Courier New', Courier, monospace; }
-        .color-btn { width: 100px; height: 100px; margin: 5px; border: 3px solid black; cursor: pointer; border-radius: 12px; transition: transform 0.2s; background-color: white; color: purple; font-weight: bold; }
-        .color-btn:hover { transform: scale(1.1); }
-        .selected { background-color: white !important; border: 5px solid black !important; }
-        #selected-sequence { margin-top: 10px; font-weight: bold; display: flex; justify-content: center; gap: 10px; }
-        .color-circle { width: 30px; height: 30px; border-radius: 50%; border: 3px solid black; display: inline-block; }
-        .action-btn { font-size: 18px; padding: 10px 20px; margin: 10px; border: 3px solid black; border-radius: 8px; cursor: pointer; transition: background 0.3s, transform 0.2s; color: purple; background-color: white; font-weight: bold; }
-        .action-btn:hover { transform: scale(1.1); background-color: lightgray; }
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            background-color: #f3e5f5; /* leggermente viola */
+        }
+        /* Titolo ALVR con font particolare, corsivo, grassetto e viola */
+        #logo { 
+            font-size: 40px; 
+            font-weight: bold; 
+            font-style: italic; 
+            color: purple; 
+            margin-bottom: 20px; 
+            font-family: 'Brush Script MT', cursive;
+        }
+        /* Bottoni dei colori: bianchi, bordo nero, senza scritta */
+        .color-btn { 
+            width: 100px; 
+            height: 100px; 
+            margin: 5px; 
+            border: 3px solid black; 
+            cursor: pointer; 
+            border-radius: 12px; 
+            transition: transform 0.2s; 
+            background-color: white; 
+        }
+        .color-btn:hover { 
+            transform: scale(1.1); 
+        }
+        /* Area per mostrare la sequenza scelta come cerchi colorati con bordo nero */
+        #selected-sequence { 
+            margin-top: 10px; 
+            font-weight: bold; 
+            display: flex; 
+            justify-content: center; 
+            gap: 10px; 
+            align-items: center;
+        }
+        .color-circle { 
+            width: 30px; 
+            height: 30px; 
+            border-radius: 50%; 
+            border: 3px solid black; 
+            display: inline-block; 
+        }
+        /* Bottoni azione: bianchi con bordo nero e scritte viola */
+        .action-btn { 
+            font-size: 18px; 
+            padding: 10px 20px; 
+            margin: 10px; 
+            border: 3px solid black; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: background 0.3s, transform 0.2s; 
+            color: purple; 
+            background-color: white; 
+            font-weight: bold; 
+        }
+        .action-btn:hover { 
+            transform: scale(1.1); 
+            background-color: lightgray; 
+        }
     </style>
 </head>
 <body>
     <div id="logo">ALVR</div>
-    <h1>Indovina la Sequenza</h1>
+    <h1 id="title">Indovina la Sequenza</h1>
     <label for="language">Seleziona lingua:</label>
     <select id="language" onchange="updateLanguage()">
         <option value="1">Italiano</option>
         <option value="2">English</option>
     </select>
-    <p>Seleziona 4 colori e prova a indovinare la sequenza segreta!</p>
+    <p id="instructions">Seleziona 4 colori e prova a indovinare la sequenza segreta!</p>
     
+    <!-- Bottoni dei colori: senza scritte -->
     <div>
-        <button class="color-btn" onclick="selectColor('Rosso')">Rosso</button>
-        <button class="color-btn" onclick="selectColor('Giallo')">Giallo</button>
-        <button class="color-btn" onclick="selectColor('Verde')">Verde</button>
-        <button class="color-btn" onclick="selectColor('Marrone Chiaro')">Marrone Chiaro</button>
-        <button class="color-btn" onclick="selectColor('Nero')">Nero</button>
-        <button class="color-btn" onclick="selectColor('Bianco')">Bianco</button>
+        <button class="color-btn" onclick="selectColor('Rosso')"></button>
+        <button class="color-btn" onclick="selectColor('Giallo')"></button>
+        <button class="color-btn" onclick="selectColor('Verde')"></button>
+        <button class="color-btn" onclick="selectColor('Marrone Chiaro')"></button>
+        <button class="color-btn" onclick="selectColor('Nero')"></button>
+        <button class="color-btn" onclick="selectColor('Bianco')"></button>
     </div>
     
+    <div id="selected-sequence-label"></div>
     <div id="selected-sequence"></div>
-    <button class="action-btn" onclick="submitGuess()">Tenta</button>
-    <button class="action-btn" onclick="resetGame()">Genera Sequenza</button>
-    <button class="action-btn" onclick="clearSelection()">Cancella</button>
+    
+    <button class="action-btn" onclick="submitGuess()" id="submit-btn">Tenta</button>
+    <button class="action-btn" onclick="resetGame()" id="generate-btn">Genera Sequenza</button>
+    <button class="action-btn" onclick="clearSelection()" id="clear-btn">Cancella</button>
+    
     <p id="feedback"></p>
     
     <script>
+        // Definizione dei colori in italiano (1) ed in inglese (2)
         const colors = {
             '1': ['Rosso', 'Giallo', 'Verde', 'Marrone Chiaro', 'Nero', 'Bianco'],
             '2': ['Red', 'Yellow', 'Green', 'Light Brown', 'Black', 'White']
         };
+        // Mappatura dei nomi ai codici CSS
+        const colorCodes = {
+            'Rosso': 'red',
+            'Giallo': 'yellow',
+            'Verde': 'green',
+            'Marrone Chiaro': 'burlywood',
+            'Nero': 'black',
+            'Bianco': 'white',
+            'Red': 'red',
+            'Yellow': 'yellow',
+            'Green': 'green',
+            'Light Brown': 'burlywood',
+            'Black': 'black',
+            'White': 'white'
+        };
+        
         let secretSequence = [];
         let userSequence = [];
         let attempts = 0;
         let clearAttempts = 0;
         
+        // Aggiorna la lingua e il testo della pagina in base al menu a tendina.
         function updateLanguage() {
             const lang = document.getElementById("language").value;
+            // Aggiorna le azioni dei bottoni dei colori (lasciali senza testo)
             const buttons = document.querySelectorAll(".color-btn");
             buttons.forEach((btn, index) => {
-                btn.innerText = colors[lang][index];
+                btn.innerText = ""; // rimuove eventuale testo
                 btn.setAttribute("onclick", `selectColor('${colors[lang][index]}')`);
             });
+            
+            // Aggiorna i testi della pagina
+            const title = document.getElementById("title");
+            const instructions = document.getElementById("instructions");
+            const submitBtn = document.getElementById("submit-btn");
+            const generateBtn = document.getElementById("generate-btn");
+            const clearBtn = document.getElementById("clear-btn");
+            const selectedSequenceLabel = document.getElementById("selected-sequence-label");
+            
+            if(lang === "1") {
+                title.innerText = "Indovina la Sequenza";
+                instructions.innerText = "Seleziona 4 colori e prova a indovinare la sequenza segreta!";
+                submitBtn.innerText = "Tenta";
+                generateBtn.innerText = "Genera Sequenza";
+                clearBtn.innerText = "Cancella";
+                selectedSequenceLabel.innerText = "Sequenza scelta:";
+            } else {
+                title.innerText = "Guess the Sequence";
+                instructions.innerText = "Select 4 colors and try to guess the secret sequence!";
+                submitBtn.innerText = "Try";
+                generateBtn.innerText = "Generate Sequence";
+                clearBtn.innerText = "Delete";
+                selectedSequenceLabel.innerText = "Selected sequence:";
+            }
+            
+            // Rigenera la sequenza segreta in base alla lingua scelta
+            generateSecretSequence();
         }
         
+        // Genera la sequenza segreta basata sulla lingua attuale
         function generateSecretSequence() {
-            secretSequence = [...colors['1']].sort(() => 0.5 - Math.random()).slice(0, 4);
-            console.log("Sequenza segreta:", secretSequence); // Debug
+            const lang = document.getElementById("language").value;
+            secretSequence = [...colors[lang]].sort(() => 0.5 - Math.random()).slice(0, 4);
+            console.log("Sequenza segreta:", secretSequence);
         }
         
+        // Aggiunge un colore alla sequenza scelta dall'utente
         function selectColor(color) {
             if (userSequence.length < 4) {
                 userSequence.push(color);
@@ -72,46 +177,55 @@
             }
         }
         
+        // Aggiorna la visualizzazione della sequenza scelta come cerchi colorati
         function updateSelectedDisplay() {
             const container = document.getElementById("selected-sequence");
             container.innerHTML = "";
             userSequence.forEach(color => {
-                let div = document.createElement("div");
-                div.classList.add("color-circle");
-                div.style.backgroundColor = color.toLowerCase().replace(" ", "");
-                container.appendChild(div);
+                const circle = document.createElement("div");
+                circle.classList.add("color-circle");
+                circle.style.backgroundColor = colorCodes[color];
+                container.appendChild(circle);
             });
         }
         
+        // Controlla se l'utente ha indovinato la sequenza
         function submitGuess() {
             if (userSequence.length !== 4) {
-                alert("Seleziona 4 colori prima di inviare!");
+                alert(document.getElementById("language").value === "1" ? "Seleziona 4 colori prima di inviare!" : "Select 4 colors before submitting!");
                 return;
             }
             attempts++;
             let correctPositions = userSequence.filter((color, index) => color === secretSequence[index]).length;
+            const feedback = document.getElementById("feedback");
             if (correctPositions === 4) {
-                document.getElementById("feedback").innerText = "🎉 Complimenti! Hai indovinato la sequenza! 🎉";
+                feedback.innerText = document.getElementById("language").value === "1" ? "🎉 Complimenti! Hai indovinato la sequenza! 🎉" : "🎉 Congratulations! You guessed the sequence! 🎉";
             } else {
-                document.getElementById("feedback").innerText = `Tentativo ${attempts}: ${correctPositions} colore/i nella posizione corretta.`;
+                feedback.innerText = document.getElementById("language").value === "1" ? 
+                    `Tentativo ${attempts}: ${correctPositions} colore/i nella posizione corretta.` : 
+                    `Attempt ${attempts}: ${correctPositions} color(s) in the correct position.`;
                 if (attempts >= 6) {
-                    document.getElementById("feedback").innerText += `\nGame Over! La sequenza era: ${secretSequence.join(', ')}`;
+                    feedback.innerText += "\n" + (document.getElementById("language").value === "1" ? 
+                        `Game Over! La sequenza era: ${secretSequence.join(', ')}` : 
+                        `Game Over! The sequence was: ${secretSequence.join(', ')}`);
                 }
             }
             userSequence = [];
             updateSelectedDisplay();
         }
         
+        // Permette di cancellare la selezione corrente (max 2 volte)
         function clearSelection() {
             if (clearAttempts < 2) {
                 userSequence = [];
                 updateSelectedDisplay();
                 clearAttempts++;
             } else {
-                alert("Hai raggiunto il limite massimo di cancellazioni!");
+                alert(document.getElementById("language").value === "1" ? "Hai raggiunto il limite massimo di cancellazioni!" : "You've reached the maximum number of deletions!");
             }
         }
         
+        // Resetta il gioco
         function resetGame() {
             attempts = 0;
             clearAttempts = 0;
@@ -121,6 +235,7 @@
             document.getElementById("feedback").innerText = "";
         }
         
+        // Inizializzazione
         generateSecretSequence();
     </script>
 </body>
