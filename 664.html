@@ -19,7 +19,7 @@
       margin-bottom: 20px; 
       font-family: 'Brush Script MT', cursive;
     }
-    /* Bottoni dei colori: bianchi con bordo nero e senza scritta, ma con colore di riempimento */
+    /* Bottoni dei colori: bianchi con bordo nero, senza scritta, con background impostato inline */
     .color-btn { 
       width: 100px; 
       height: 100px; 
@@ -28,7 +28,7 @@
       cursor: pointer; 
       border-radius: 12px; 
       transition: transform 0.2s; 
-      /* Il background verrà impostato inline */
+      background-color: white; 
     }
     .color-btn:hover { 
       transform: scale(1.1); 
@@ -87,7 +87,7 @@
   </div>
   <p id="instructions">Seleziona 4 colori e prova a indovinare la sequenza segreta!</p>
   
-  <!-- Bottoni dei colori con il background impostato inline -->
+  <!-- Bottoni dei colori con background inline -->
   <div>
     <button class="color-btn" onclick="selectColor('Rosso')" style="background-color: red;"></button>
     <button class="color-btn" onclick="selectColor('Giallo')" style="background-color: yellow;"></button>
@@ -133,7 +133,7 @@
     let attempts = 0;
     let clearAttempts = 0;
     
-    // Aggiorna il testo della pagina in base alla lingua selezionata
+    // Aggiorna la lingua e i testi della pagina in base alla selezione
     function updateLanguage() {
       const lang = document.getElementById("language").value;
       const languageLabel = document.getElementById("language-label");
@@ -167,7 +167,7 @@
     // Genera la sequenza segreta di 4 colori diversi (nessun duplicato)
     function generateSecretSequence() {
       const lang = document.getElementById("language").value;
-      // Shuffla l'array e prende i primi 4 elementi (unici)
+      // Shuffle e prendi i primi 4 colori unici
       secretSequence = [...colors[lang]].sort(() => 0.5 - Math.random()).slice(0, 4);
       console.log("Secret sequence:", secretSequence);
     }
@@ -238,7 +238,7 @@
       document.getElementById("feedback").innerText = "";
     }
     
-    // Inizializza la sequenza segreta
+    // Inizializza la sequenza segreta all'avvio
     generateSecretSequence();
   </script>
 </body>
