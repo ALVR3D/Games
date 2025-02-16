@@ -6,74 +6,83 @@
     <title>Indovina la Sequenza</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #f3e5f5; }
-        .color-btn { width: 100px; height: 100px; margin: 5px; border: 3px solid black; cursor: pointer; border-radius: 12px; transition: transform 0.2s; color: purple; background-color: white; }
+        #logo { font-size: 30px; font-weight: bold; font-style: italic; color: purple; margin-bottom: 20px; font-family: 'Courier New', Courier, monospace; }
+        .color-btn { width: 100px; height: 100px; margin: 5px; border: 3px solid black; cursor: pointer; border-radius: 12px; transition: transform 0.2s; background-color: white; color: purple; font-weight: bold; }
         .color-btn:hover { transform: scale(1.1); }
-        .rosso { background-color: red; }
-        .giallo { background-color: yellow; }
-        .verde { background-color: green; }
-        .marrone { background-color: burlywood; }
-        .nero { background-color: black; color: white; }
-        .bianco { background-color: white; border: 3px solid black; }
-        #selected-sequence { margin-top: 10px; font-weight: bold; }
-        .sequence-circle { display: inline-block; width: 25px; height: 25px; border-radius: 50%; border: 2px solid black; margin: 2px; }
-        #feedback { margin-top: 15px; font-size: 18px; font-weight: bold; }
-        #logo { font-size: 30px; font-weight: bold; margin-bottom: 20px; letter-spacing: 2px; font-style: italic; color: purple; }
-        .action-btn { font-size: 18px; padding: 10px 20px; margin: 10px; border: 3px solid black; border-radius: 8px; cursor: pointer; transition: background 0.3s, transform 0.2s; color: purple; background-color: white; }
+        .selected { background-color: white !important; border: 5px solid black !important; }
+        #selected-sequence { margin-top: 10px; font-weight: bold; display: flex; justify-content: center; gap: 10px; }
+        .color-circle { width: 30px; height: 30px; border-radius: 50%; border: 3px solid black; display: inline-block; }
+        .action-btn { font-size: 18px; padding: 10px 20px; margin: 10px; border: 3px solid black; border-radius: 8px; cursor: pointer; transition: background 0.3s, transform 0.2s; color: purple; background-color: white; font-weight: bold; }
         .action-btn:hover { transform: scale(1.1); background-color: lightgray; }
     </style>
 </head>
 <body>
     <div id="logo">ALVR</div>
     <h1>Indovina la Sequenza</h1>
+    <label for="language">Seleziona lingua:</label>
+    <select id="language" onchange="updateLanguage()">
+        <option value="1">Italiano</option>
+        <option value="2">English</option>
+    </select>
     <p>Seleziona 4 colori e prova a indovinare la sequenza segreta!</p>
     
     <div>
-        <button class="color-btn rosso" onclick="selectColor('Rosso')"></button>
-        <button class="color-btn giallo" onclick="selectColor('Giallo')"></button>
-        <button class="color-btn verde" onclick="selectColor('Verde')"></button>
-        <button class="color-btn marrone" onclick="selectColor('Marrone Chiaro')"></button>
-        <button class="color-btn nero" onclick="selectColor('Nero')"></button>
-        <button class="color-btn bianco" onclick="selectColor('Bianco')"></button>
+        <button class="color-btn" onclick="selectColor('Rosso')">Rosso</button>
+        <button class="color-btn" onclick="selectColor('Giallo')">Giallo</button>
+        <button class="color-btn" onclick="selectColor('Verde')">Verde</button>
+        <button class="color-btn" onclick="selectColor('Marrone Chiaro')">Marrone Chiaro</button>
+        <button class="color-btn" onclick="selectColor('Nero')">Nero</button>
+        <button class="color-btn" onclick="selectColor('Bianco')">Bianco</button>
     </div>
     
-    <p id="selected-sequence">Sequenza scelta: </p>
+    <div id="selected-sequence"></div>
     <button class="action-btn" onclick="submitGuess()">Tenta</button>
     <button class="action-btn" onclick="resetGame()">Genera Sequenza</button>
+    <button class="action-btn" onclick="clearSelection()">Cancella</button>
     <p id="feedback"></p>
     
     <script>
         const colors = {
-            "it": ['Rosso', 'Giallo', 'Verde', 'Marrone Chiaro', 'Nero', 'Bianco'],
-            "en": ['Red', 'Yellow', 'Green', 'Light Brown', 'Black', 'White']
+            '1': ['Rosso', 'Giallo', 'Verde', 'Marrone Chiaro', 'Nero', 'Bianco'],
+            '2': ['Red', 'Yellow', 'Green', 'Light Brown', 'Black', 'White']
         };
         let secretSequence = [];
         let userSequence = [];
         let attempts = 0;
-        let currentLanguage = "it";
-
+        let clearAttempts = 0;
+        
+        function updateLanguage() {
+            const lang = document.getElementById("language").value;
+            const buttons = document.querySelectorAll(".color-btn");
+            buttons.forEach((btn, index) => {
+                btn.innerText = colors[lang][index];
+                btn.setAttribute("onclick", `selectColor('${colors[lang][index]}')`);
+            });
+        }
+        
         function generateSecretSequence() {
-            secretSequence = [...colors[currentLanguage]].sort(() => 0.5 - Math.random()).slice(0, 4);
+            secretSequence = [...colors['1']].sort(() => 0.5 - Math.random()).slice(0, 4);
             console.log("Sequenza segreta:", secretSequence); // Debug
         }
-
+        
         function selectColor(color) {
             if (userSequence.length < 4) {
                 userSequence.push(color);
-                updateSelectedSequence();
+                updateSelectedDisplay();
             }
         }
-
-        function updateSelectedSequence() {
-            const sequenceContainer = document.getElementById("selected-sequence");
-            sequenceContainer.innerHTML = "Sequenza scelta: ";
+        
+        function updateSelectedDisplay() {
+            const container = document.getElementById("selected-sequence");
+            container.innerHTML = "";
             userSequence.forEach(color => {
-                const circle = document.createElement("span");
-                circle.classList.add("sequence-circle");
-                circle.style.backgroundColor = color.toLowerCase().replace(" ", "");
-                sequenceContainer.appendChild(circle);
+                let div = document.createElement("div");
+                div.classList.add("color-circle");
+                div.style.backgroundColor = color.toLowerCase().replace(" ", "");
+                container.appendChild(div);
             });
         }
-
+        
         function submitGuess() {
             if (userSequence.length !== 4) {
                 alert("Seleziona 4 colori prima di inviare!");
@@ -90,17 +99,28 @@
                 }
             }
             userSequence = [];
-            updateSelectedSequence();
+            updateSelectedDisplay();
         }
-
+        
+        function clearSelection() {
+            if (clearAttempts < 2) {
+                userSequence = [];
+                updateSelectedDisplay();
+                clearAttempts++;
+            } else {
+                alert("Hai raggiunto il limite massimo di cancellazioni!");
+            }
+        }
+        
         function resetGame() {
             attempts = 0;
+            clearAttempts = 0;
             generateSecretSequence();
             userSequence = [];
-            updateSelectedSequence();
+            updateSelectedDisplay();
             document.getElementById("feedback").innerText = "";
         }
-
+        
         generateSecretSequence();
     </script>
 </body>
