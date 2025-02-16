@@ -8,8 +8,9 @@
     body { 
       font-family: Arial, sans-serif; 
       text-align: center; 
-      background-color: #f3e5f5; 
+      background-color: #f3e5f5; /* sfondo leggermente viola */
     }
+    /* Titolo ALVR con font particolare, corsivo, grassetto e viola */
     #logo { 
       font-size: 40px; 
       font-weight: bold; 
@@ -18,18 +19,21 @@
       margin-bottom: 20px; 
       font-family: 'Brush Script MT', cursive;
     }
+    /* Bottoni dei colori: bianchi con bordo nero, senza scritta, con background impostato inline */
     .color-btn { 
-      width: 90px; 
-      height: 90px; 
+      width: 100px; 
+      height: 100px; 
       margin: 5px; 
       border: 3px solid black; 
       cursor: pointer; 
       border-radius: 12px; 
+      transition: transform 0.2s; 
       background-color: white; 
     }
     .color-btn:hover { 
       transform: scale(1.1); 
     }
+    /* Area per la sequenza scelta (cerchi con bordo nero) */
     #selected-sequence { 
       margin-top: 10px; 
       font-weight: bold; 
@@ -45,6 +49,7 @@
       border: 3px solid black; 
       display: inline-block; 
     }
+    /* Bottoni azione: sfondo bianco, bordo nero, scritte viola */
     .action-btn { 
       font-size: 18px; 
       padding: 10px 20px; 
@@ -52,6 +57,7 @@
       border: 3px solid black; 
       border-radius: 8px; 
       cursor: pointer; 
+      transition: background 0.3s, transform 0.2s; 
       color: purple; 
       background-color: white; 
       font-weight: bold; 
@@ -60,12 +66,14 @@
       transform: scale(1.1); 
       background-color: lightgray; 
     }
+    /* Stile per il menu a tendina con label */
     #language-container { 
       margin-bottom: 20px; 
       font-size: 18px; 
       font-weight: bold; 
       color: purple;
     }
+    /* Story line per i tentativi */
     #storyline {
       margin-top: 20px;
       font-size: 16px;
@@ -77,26 +85,6 @@
     }
     #storyline div {
       margin-bottom: 10px;
-    }
-
-    /* Media query per dispositivi mobili */
-    @media (max-width: 600px) {
-      .color-btn {
-        width: 60px; 
-        height: 60px; 
-        margin: 3px;
-      }
-      .color-circle {
-        width: 20px;
-        height: 20px;
-      }
-      .action-btn {
-        font-size: 14px;
-        padding: 8px 15px;
-      }
-      #logo {
-        font-size: 30px;
-      }
     }
   </style>
 </head>
@@ -112,7 +100,9 @@
   </div>
   <p id="instructions">Seleziona 4 colori e prova a indovinare la sequenza segreta!</p>
   
+  <!-- Bottoni dei colori -->
   <div>
+    <!-- I bottoni hanno il background impostato inline; gli onclick verranno aggiornati in updateLanguage() -->
     <button class="color-btn" onclick="selectColor('Rosso')" style="background-color: red;"></button>
     <button class="color-btn" onclick="selectColor('Giallo')" style="background-color: yellow;"></button>
     <button class="color-btn" onclick="selectColor('Verde')" style="background-color: green;"></button>
@@ -132,56 +122,185 @@
   <div id="storyline"></div>
   
   <script>
+    // Array dei colori per lingua: '1' = Italiano, '2' = English
+    const colors = {
+      '1': ['Rosso', 'Giallo', 'Verde', 'Marrone Chiaro', 'Nero', 'Bianco'],
+      '2': ['Red', 'Yellow', 'Green', 'Light Brown', 'Black', 'White']
+    };
+    // Mappatura dei nomi dei colori ai codici CSS
+    const colorCodes = {
+      'Rosso': 'red',
+      'Giallo': 'yellow',
+      'Verde': 'green',
+      'Marrone Chiaro': 'burlywood',
+      'Nero': 'black',
+      'Bianco': 'white',
+      'Red': 'red',
+      'Yellow': 'yellow',
+      'Green': 'green',
+      'Light Brown': 'burlywood',
+      'Black': 'black',
+      'White': 'white'
+    };
+    
+    let secretSequence = [];
+    let userSequence = [];
+    let attempts = 0;
+    let clearAttempts = 0;
+    
+    // Aggiorna la lingua e i testi della pagina in base alla selezione
     function updateLanguage() {
       const lang = document.getElementById("language").value;
-      document.getElementById("language-label").innerText = lang === "1" ? "Scegli la lingua:" : "Choose language:";
-      document.getElementById("title").innerText = lang === "1" ? "Indovina la Sequenza" : "Guess the Sequence";
-      document.getElementById("instructions").innerText = lang === "1" ? "Seleziona 4 colori e prova a indovinare la sequenza segreta!" : "Select 4 colors and try to guess the secret sequence!";
-      document.getElementById("submit-btn").innerText = lang === "1" ? "Tenta" : "Try";
-      document.getElementById("generate-btn").innerText = lang === "1" ? "Genera Sequenza" : "Generate Sequence";
-      document.getElementById("clear-btn").innerText = lang === "1" ? "Cancella" : "Delete";
-      document.getElementById("selected-sequence-label").innerText = lang === "1" ? "Sequenza scelta:" : "Selected sequence:";
+      const languageLabel = document.getElementById("language-label");
+      const title = document.getElementById("title");
+      const instructions = document.getElementById("instructions");
+      const submitBtn = document.getElementById("submit-btn");
+      const generateBtn = document.getElementById("generate-btn");
+      const clearBtn = document.getElementById("clear-btn");
+      const selectedSeqLabel = document.getElementById("selected-sequence-label");
+      
+      if (lang === "1") {
+        languageLabel.innerText = "Scegli la lingua:";
+        title.innerText = "Indovina la Sequenza";
+        instructions.innerText = "Seleziona 4 colori e prova a indovinare la sequenza segreta!";
+        submitBtn.innerText = "Tenta";
+        generateBtn.innerText = "Genera Sequenza";
+        clearBtn.innerText = "Cancella";
+        selectedSeqLabel.innerText = "Sequenza scelta:";
+      } else {
+        languageLabel.innerText = "Choose language:";
+        title.innerText = "Guess the Sequence";
+        instructions.innerText = "Select 4 colors and try to guess the secret sequence!";
+        submitBtn.innerText = "Try";
+        generateBtn.innerText = "Generate Sequence";
+        clearBtn.innerText = "Delete";
+        selectedSeqLabel.innerText = "Selected sequence:";
+      }
+      
+      // Aggiorna gli onclick dei bottoni dei colori in base alla lingua
+      const colorButtons = document.querySelectorAll(".color-btn");
+      const langColors = colors[lang];
+      for (let i = 0; i < colorButtons.length; i++) {
+        colorButtons[i].setAttribute("onclick", `selectColor('${langColors[i]}')`);
+      }
+      
+      generateSecretSequence();
+      document.getElementById("storyline").innerHTML = ""; // reset della story line
+      attempts = 0;
     }
     
+    // Genera la sequenza segreta di 4 colori diversi (nessun duplicato)
+    function generateSecretSequence() {
+      const lang = document.getElementById("language").value;
+      // Shuffle l'array e prendi i primi 4 colori
+      secretSequence = [...colors[lang]].sort(() => 0.5 - Math.random()).slice(0, 4);
+      console.log("Secret sequence:", secretSequence);
+    }
+    
+    // Aggiunge un colore alla selezione dell'utente (i colori saranno in base alla lingua impostata)
     function selectColor(color) {
-      if (document.getElementById("selected-sequence").children.length < 4) {
-        const circle = document.createElement("div");
-        circle.classList.add("color-circle");
-        circle.style.backgroundColor = color;
-        document.getElementById("selected-sequence").appendChild(circle);
+      if (userSequence.length < 4) {
+        userSequence.push(color);
+        updateSelectedDisplay();
       }
     }
     
+    // Aggiorna la visualizzazione della sequenza scelta (cerchi colorati)
+    function updateSelectedDisplay() {
+      const container = document.getElementById("selected-sequence");
+      container.innerHTML = "";
+      userSequence.forEach(color => {
+        const circle = document.createElement("div");
+        circle.classList.add("color-circle");
+        circle.style.backgroundColor = colorCodes[color];
+        container.appendChild(circle);
+      });
+    }
+    
+    // Logga il tentativo nella "storyline" usando gli stessi cerchi e il messaggio dei colori corretti
+    function logAttempt(guess, correctPositions) {
+      const lang = document.getElementById("language").value;
+      const storylineContainer = document.getElementById("storyline");
+      const attemptDiv = document.createElement("div");
+      attemptDiv.style.marginBottom = "10px";
+      
+      // Container per i cerchi (copia della selezione)
+      const circlesContainer = document.createElement("div");
+      circlesContainer.style.display = "flex";
+      circlesContainer.style.justifyContent = "center";
+      circlesContainer.style.gap = "5px";
+      guess.forEach(color => {
+        const circle = document.createElement("div");
+        circle.classList.add("color-circle");
+        circle.style.backgroundColor = colorCodes[color];
+        circlesContainer.appendChild(circle);
+      });
+      attemptDiv.appendChild(circlesContainer);
+      
+      // Messaggio con il numero di colori corretti, sotto i cerchi
+      const correctMsg = document.createElement("div");
+      correctMsg.style.marginTop = "5px";
+      if (lang === "1") {
+        correctMsg.innerText = `${correctPositions} colore/i corretti`;
+      } else {
+        correctMsg.innerText = `${correctPositions} color(s) correct`;
+      }
+      attemptDiv.appendChild(correctMsg);
+      
+      storylineContainer.appendChild(attemptDiv);
+    }
+    
+    // Controlla se l'utente ha indovinato la sequenza e logga il tentativo
     function submitGuess() {
-      const guess = document.getElementById("selected-sequence").children;
-      if (guess.length !== 4) {
+      if (userSequence.length !== 4) {
         alert(document.getElementById("language").value === "1" ? "Seleziona 4 colori prima di inviare!" : "Select 4 colors before submitting!");
         return;
       }
-      const storyDiv = document.createElement("div");
-      const attemptContainer = document.createElement("div");
-      attemptContainer.style.display = "flex";
-      attemptContainer.style.justifyContent = "center";
-      attemptContainer.style.gap = "5px";
-      
-      for (let i = 0; i < guess.length; i++) {
-        const colorClone = guess[i].cloneNode();
-        attemptContainer.appendChild(colorClone);
+      attempts++;
+      const guessAttempt = [...userSequence];
+      let correctPositions = userSequence.filter((color, index) => color === secretSequence[index]).length;
+      const feedback = document.getElementById("feedback");
+      if (correctPositions === 4) {
+        feedback.innerText = document.getElementById("language").value === "1" ? "🎉 Complimenti! Hai indovinato la sequenza! 🎉" : "🎉 Congratulations! You guessed the sequence! 🎉";
+      } else {
+        feedback.innerText = document.getElementById("language").value === "1" ? 
+          `Tentativo ${attempts}: ${correctPositions} colore/i nella posizione corretta.` : 
+          `Attempt ${attempts}: ${correctPositions} color(s) in the correct position.`;
+        if (attempts >= 6) {
+          feedback.innerText += "\n" + (document.getElementById("language").value === "1" ? 
+            `Game Over! La sequenza era: ${secretSequence.join(', ')}` : 
+            `Game Over! The sequence was: ${secretSequence.join(', ')}`);
+        }
       }
-      
-      storyDiv.appendChild(attemptContainer);
-      document.getElementById("storyline").appendChild(storyDiv);
-      document.getElementById("selected-sequence").innerHTML = "";
+      logAttempt(guessAttempt, correctPositions);
+      userSequence = [];
+      updateSelectedDisplay();
     }
     
+    // Permette di cancellare la selezione corrente (massimo 2 volte)
     function clearSelection() {
-      document.getElementById("selected-sequence").innerHTML = "";
+      if (clearAttempts < 2) {
+        userSequence = [];
+        updateSelectedDisplay();
+        clearAttempts++;
+      } else {
+        alert(document.getElementById("language").value === "1" ? "Hai raggiunto il limite massimo di cancellazioni!" : "You've reached the maximum number of deletions!");
+      }
     }
     
+    // Resetta il gioco (incluse la story line e la sequenza segreta)
     function resetGame() {
+      attempts = 0;
+      clearAttempts = 0;
+      generateSecretSequence();
+      userSequence = [];
+      updateSelectedDisplay();
+      document.getElementById("feedback").innerText = "";
       document.getElementById("storyline").innerHTML = "";
-      document.getElementById("selected-sequence").innerHTML = "";
     }
+    
+    // Inizializza la sequenza segreta all'avvio
+    generateSecretSequence();
   </script>
 </body>
 </html>
