@@ -78,13 +78,13 @@
       margin-top: 20px;
       font-size: 16px;
       color: purple;
-      text-align: left;
+      text-align: center;
       max-width: 600px;
       margin-left: auto;
       margin-right: auto;
     }
     #storyline div {
-      margin-bottom: 5px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -147,7 +147,7 @@
     let attempts = 0;
     let clearAttempts = 0;
     
-    // Aggiorna il testo della pagina in base alla lingua selezionata
+    // Aggiorna la lingua e i testi della pagina in base alla selezione
     function updateLanguage() {
       const lang = document.getElementById("language").value;
       const languageLabel = document.getElementById("language-label");
@@ -176,14 +176,14 @@
         selectedSeqLabel.innerText = "Selected sequence:";
       }
       generateSecretSequence();
-      document.getElementById("storyline").innerHTML = ""; // reset story line
+      document.getElementById("storyline").innerHTML = ""; // reset della story line
       attempts = 0;
     }
     
     // Genera la sequenza segreta di 4 colori diversi (nessun duplicato)
     function generateSecretSequence() {
       const lang = document.getElementById("language").value;
-      // Shuffla l'array e prendi i primi 4 colori unici
+      // Shuffla l'array e prendi i primi 4 colori
       secretSequence = [...colors[lang]].sort(() => 0.5 - Math.random()).slice(0, 4);
       console.log("Secret sequence:", secretSequence);
     }
@@ -208,27 +208,46 @@
       });
     }
     
-    // Registra e mostra nella "storyline" i tentativi effettuati
+    // Logga il tentativo nella "story line" usando gli stessi cerchi
     function logAttempt(guess, correctPositions) {
       const lang = document.getElementById("language").value;
       const storylineContainer = document.getElementById("storyline");
       const attemptDiv = document.createElement("div");
+      attemptDiv.style.marginBottom = "10px";
+      
+      // Crea una copia dei cerchi come per la selezione
+      const circlesContainer = document.createElement("div");
+      circlesContainer.style.display = "flex";
+      circlesContainer.style.justifyContent = "center";
+      circlesContainer.style.gap = "5px";
+      guess.forEach(color => {
+        const circle = document.createElement("div");
+        circle.classList.add("color-circle");
+        circle.style.backgroundColor = colorCodes[color];
+        circlesContainer.appendChild(circle);
+      });
+      attemptDiv.appendChild(circlesContainer);
+      
+      // Messaggio con il numero di colori corretti, sotto i cerchi
+      const correctMsg = document.createElement("div");
+      correctMsg.style.marginTop = "5px";
       if (lang === "1") {
-        attemptDiv.innerText = `Tentativo ${attempts}: ${guess.join(', ')} => ${correctPositions} colore/i nella posizione corretta.`;
+        correctMsg.innerText = `${correctPositions} colore/i corretti`;
       } else {
-        attemptDiv.innerText = `Attempt ${attempts}: ${guess.join(', ')} => ${correctPositions} color(s) in the correct position.`;
+        correctMsg.innerText = `${correctPositions} color(s) correct`;
       }
+      attemptDiv.appendChild(correctMsg);
+      
       storylineContainer.appendChild(attemptDiv);
     }
     
-    // Controlla se l'utente ha indovinato la sequenza
+    // Controlla se l'utente ha indovinato la sequenza e logga il tentativo
     function submitGuess() {
       if (userSequence.length !== 4) {
         alert(document.getElementById("language").value === "1" ? "Seleziona 4 colori prima di inviare!" : "Select 4 colors before submitting!");
         return;
       }
       attempts++;
-      // Salva il tentativo corrente per il log
       const guessAttempt = [...userSequence];
       let correctPositions = userSequence.filter((color, index) => color === secretSequence[index]).length;
       const feedback = document.getElementById("feedback");
